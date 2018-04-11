@@ -51,7 +51,7 @@ def api_404_error_handler(error):
 
 @app.route('/api/v1/books')
 def api_get_all_books():
-	return jsonify({'books': books_collection})
+	return jsonify({'all books': books_collection})
 
 
 @app.route('/api/v1/books/<string:book_id>')
