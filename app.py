@@ -96,6 +96,21 @@ def api_create_book():
 	if isinstance(req_data['author'], list) is False:
 		return jsonify({'error': 'author must be of list type'}), 400
 
+	# Validate ISBN
+	isbn_data = req_data['isbn'].strip()
+	if len(isbn_data) < 1:
+		return jsonify({'error': "ISBN field cannot be empty"})
+
+	isbn_data_split = isbn_data.split("-")
+	isbn_join = "".join(isbn_data_split)
+
+	if isbn_join.isdigit() is not True:
+		return jsonify({"error": "ISBN no, excluding the -, should only be in digits"}), 400
+
+	if (len(isbn_join) != 10) and (len(isbn_join) != 13):
+		return jsonify(
+			{"error": "make sure the digits part of the ISBN(without the -), are either 10 digits or 13 digits"})
+
 	# format author
 	new_author = []
 	for author in req_data['author']:
