@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/Nerldy/hello_books_REST_API.svg?branch=master)](https://travis-ci.org/Nerldy/hello_books_REST_API)
 [![Coverage Status](https://coveralls.io/repos/github/Nerldy/hello_books_REST_API/badge.svg)](https://coveralls.io/github/Nerldy/hello_books_REST_API)
 
 # HELLO BOOKS APP
