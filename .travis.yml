@@ -1,0 +1,11 @@
+language: python
+python:
+  - "3.6-dev"
+nstall:
+  - pip install -r requirements.txt
+script:
+  - nostest
+notifications:
+  - false
+
+after_success: "coveralls"
