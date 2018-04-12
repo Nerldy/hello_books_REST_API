@@ -1,7 +1,5 @@
 [![Build Status](https://travis-ci.org/Nerldy/hello_books_REST_API.svg?branch=master)](https://travis-ci.org/Nerldy/hello_books_REST_API)
-
 [![Coverage Status](https://coveralls.io/repos/github/Nerldy/hello_books_REST_API/badge.svg?branch=master)](https://coveralls.io/github/Nerldy/hello_books_REST_API?branch=master)
-
 [![Maintainability](https://api.codeclimate.com/v1/badges/87e75c4187bfa5f7212f/maintainability)](https://codeclimate.com/github/Nerldy/hello_books_REST_API/maintainability)
 
 # HELLO BOOKS APP
