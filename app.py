@@ -38,6 +38,8 @@ books_collection = [
 
 allowed_keys = ['title', 'isbn', 'author', 'synopsis']  # needed book keys
 
+borrowed_book_collection = []
+
 
 @app.errorhandler(400)
 def error_400(e):
@@ -137,7 +139,7 @@ def api_create_book():
 	}
 
 	books_collection.append(single_book)  # add to book collection
-	return jsonify({'Book successfully created': single_book})
+	return jsonify({'Book successfully created': single_book}), 201
 
 
 @app.route('/api/v1/books/<string:book_id>', methods=['PUT'])
@@ -198,6 +200,14 @@ def api_update_book(book_id):
 
 @app.route('/api/v1/books/<string:book_id>', methods=['DELETE'])
 def api_delete_book(book_id):
+	"""
+	delete book function
+	:param book_id:
+	:return:
+	"""
+	if book_id.isalnum() is False:
+		return jsonify({"error": "make sure you're using web safe characters"}), 400
+
 	delete_book = [book for book in books_collection if book['id'] == book_id]
 
 	if len(delete_book) < 1:
@@ -205,6 +215,27 @@ def api_delete_book(book_id):
 
 	books_collection.remove(delete_book[0])
 	return jsonify({"result": True})
+
+
+@app.route('/api/v1/users/books/<string:book_id>', methods=['POST'])
+def api_borrow_book(book_id):
+	"""
+	function for user borrow book
+	:param book_id:
+	:return: 200, 404
+	"""
+
+	if book_id.isalnum() is False:
+		return jsonify({"error": "make sure you're using web safe characters"}), 400
+
+	borrowed_book = [book for book in books_collection if book['id'] == book_id]
+
+	if len(borrowed_book) < 1:
+		abort(404)
+
+	borrowed_book_collection.append(borrowed_book[0])
+
+	return jsonify({"borrowed book": borrowed_book[0]})
 
 
 if __name__ == '__main__':
