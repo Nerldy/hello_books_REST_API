@@ -161,7 +161,7 @@ def api_update_book(book_id):
 	if 'title' in request.json:
 		title = format_book_input_values(req_data['title'])
 
-		if len(req_data['title']) < 1:
+		if len(title) < 1:
 			abort(400)
 		else:
 			request.json['title'] = title
@@ -184,13 +184,6 @@ def api_update_book(book_id):
 		# validate synopsis
 		if len(request.json['synopsis']) < 50:
 			abort(400)
-
-	req_data_key_list = req_data.keys()
-
-	if len(allowed_keys) < len(req_data_key_list):  # filter unrecognized keys
-		for key in req_data:
-			if key not in allowed_keys:
-				return jsonify({"error": f"{key} is an unrecognized key"}), 400
 
 	update_book[0]['title'] = request.json.get('title', update_book[0]['title'])
 	update_book[0]['author'] = request.json.get('author', update_book[0]['author'])
