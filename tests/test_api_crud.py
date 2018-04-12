@@ -19,6 +19,15 @@ class ApiTestCRUDCases(TestCase):
 		res = self.app.get('/api/v1/books')
 		assert b"all books" in res.data
 
+	def test_get_book_id_web_safe(self):
+		res = self.app.get("/api/v1/books/69++")
+		self.assertEqual(res.status_code, 400)
+
+	def test_get_book_with_id_successful(self):
+		res = self.app.get("/api/v1/books/1")
+		self.assertEqual(res.status_code, 200)
+		assert b"book" in res.data
+
 	def test_create_book(self):
 		payload = {
 			"title": "Create Book",
@@ -29,6 +38,22 @@ class ApiTestCRUDCases(TestCase):
 		res = self.app.post('/api/v1/books', data=json.dumps(payload), content_type='application/json')
 		assert b"Book successfully created" in res.data
 		self.assertEqual(res.status_code, 201)
+
+	def test_create_book_empty_json_not_detected(self):
+		payload = {}
+		res = self.app.post('/api/v1/books', data=json.dumps(payload), content_type='application/json')
+		assert b"json object not detected" in res.data
+		self.assertEqual(res.status_code, 400)
+
+	def test_create_book_title_key_not_detected(self):
+		payload = {
+			"isbn": "569-698-587-5",
+			"author": ["5", "pola  ", "dummba"],
+			"synopsis": "The delete_task function should have no surprises. For the update_task function we are trying to prevent bugs by doing exhaustive checking of the input arguments. We need to make sure that anything that the client provided us is in the expected format before we incorporate it into our database."
+		}
+		res = self.app.post('/api/v1/books', data=json.dumps(payload), content_type='application/json')
+		assert b"'title' key not detected" in res.data
+		self.assertEqual(res.status_code, 400)
 
 	def test_remove_book_web_safe(self):
 		res = self.app.delete('/api/v1/books/+69+')
@@ -102,6 +127,3 @@ class ApiTestCRUDCases(TestCase):
 	def test_borrow_book_no_book_found(self):
 		res = self.app.post("/api/v1/users/books/100")
 		self.assertEqual(res.status_code, 404)
-
-
-
