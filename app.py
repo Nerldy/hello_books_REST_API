@@ -86,19 +86,6 @@ def api_create_book():
 
 	if 'synopsis' not in req_data:
 		return jsonify({"error": "'synopsis' key not detected"}), 400
-	req_data_key_list = req_data.keys()
-
-	if len(allowed_keys) < len(req_data_key_list):  # filter unrecognized keys
-		for key in req_data:
-			if key not in allowed_keys:
-				return jsonify({"error": f"{key} is an unrecognized key"}), 400
-
-	for bookISBN in books_collection:  # confirm ISBN doesn't exist
-		if bookISBN['isbn'] == req_data['isbn']:
-			return jsonify({'error': f"ISBN no. {req_data['isbn']} already exists. ISBN number MUST be unique"}), 400
-
-	if isinstance(req_data['author'], list) is False:
-		return jsonify({'error': 'author must be of list type'}), 400
 
 	# validate ISBN
 	isbn_data = req_data['isbn'].strip()
@@ -114,6 +101,20 @@ def api_create_book():
 	if (len(isbn_join) != 10) and (len(isbn_join) != 13):
 		return jsonify(
 			{"error": "make sure the digits part of the ISBN(without the -), are either 10 digits or 13 digits"}), 400
+
+	req_data_key_list = req_data.keys()
+
+	if len(allowed_keys) < len(req_data_key_list):  # filter unrecognized keys
+		for key in req_data:
+			if key not in allowed_keys:
+				return jsonify({"error": f"{key} is an unrecognized key"}), 400
+
+	for bookISBN in books_collection:  # confirm ISBN doesn't exist
+		if bookISBN['isbn'] == req_data['isbn']:
+			return jsonify({'error': f"ISBN no. {req_data['isbn']} already exists. ISBN number MUST be unique"}), 400
+
+	if isinstance(req_data['author'], list) is False:
+		return jsonify({'error': 'author must be of list type'}), 400
 
 	# validate author
 	new_author = []
