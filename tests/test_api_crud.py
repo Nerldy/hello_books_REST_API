@@ -91,3 +91,17 @@ class ApiTestCRUDCases(TestCase):
 		res = self.app.put('/api/v1/books/2', data=json.dumps(payload), content_type='application/json')
 		self.assertEqual(res.status_code, 400)
 
+	def test_borrow_book_successful(self):
+		res = self.app.post("/api/v1/users/books/2")
+		self.assertEqual(res.status_code, 200)
+
+	def test_borrow_book_web_safe(self):
+		res = self.app.post("/api/v1/users/books/2++")
+		self.assertEqual(res.status_code, 400)
+
+	def test_borrow_book_no_book_found(self):
+		res = self.app.post("/api/v1/users/books/100")
+		self.assertEqual(res.status_code, 404)
+
+
+
