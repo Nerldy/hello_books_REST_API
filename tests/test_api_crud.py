@@ -52,3 +52,42 @@ class ApiTestCRUDCases(TestCase):
 		res = self.app.put('/api/v1/books/2', data=json.dumps(payload), content_type='application/json')
 		self.assertEqual(res.status_code, 200)
 		assert b"updated" in res.data
+
+	def test_update_web_safe_error(self):
+		res = self.app.put('api/v1/books/2+69*')
+		assert b"web safe" in res.data
+
+	def test_update_not_json(self):
+		res = self.app.put('api/v1/books/1', data=[])
+		self.assertEqual(res.status_code, 400)
+
+	def test_update_empty_title_error(self):
+		payload = {
+			"title": "  ",
+		}
+		res = self.app.put('/api/v1/books/2', data=json.dumps(payload), content_type='application/json')
+		self.assertEqual(res.status_code, 400)
+		assert b"Bad request" in res.data
+
+	def test_update_author_not_list_aborts(self):
+		payload = {
+			"author": "  ",
+		}
+		res = self.app.put('/api/v1/books/2', data=json.dumps(payload), content_type='application/json')
+		self.assertEqual(res.status_code, 400)
+		assert b"Bad request" in res.data
+
+	def test_update_author_not_empty(self):
+		payload = {
+			"author": ["  "],
+		}
+		res = self.app.put('/api/v1/books/2', data=json.dumps(payload), content_type='application/json')
+		assert b"author list cannot contain an empty field" in res.data
+
+	def test_update_synopsis_less_than_50_error(self):
+		payload = {
+			"synopsis": ""
+		}
+		res = self.app.put('/api/v1/books/2', data=json.dumps(payload), content_type='application/json')
+		self.assertEqual(res.status_code, 400)
+
