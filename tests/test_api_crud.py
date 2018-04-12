@@ -28,3 +28,27 @@ class ApiTestCRUDCases(TestCase):
 		}
 		res = self.app.post('/api/v1/books', data=json.dumps(payload), content_type='application/json')
 		assert b"Book successfully created" in res.data
+		self.assertEqual(res.status_code, 201)
+
+	def test_remove_book_web_safe(self):
+		res = self.app.delete('/api/v1/books/+69+')
+		assert b"web safe" in res.data
+
+	def test_remove_book_404_error(self):
+		res = self.app.delete('/api/v1/books/568')
+		self.assertEqual(res.status_code, 404)
+
+	def test_remove_book_successful(self):
+		res = self.app.delete('/api/v1/books/1')
+		self.assertEqual(res.status_code, 200)
+
+	def test_update_book_succesful(self):
+		payload = {
+			"title": "New Book",
+			"author": ["new author"],
+			"synposis": "The server has fulfilled the request but does not need to return an entity-body, and might want to return updated metainformation. The response MAY include new or updated metainformation in the form of entity-headers, which if present SHOULD be associated with the requested variant."
+		}
+
+		res = self.app.put('/api/v1/books/2', data=json.dumps(payload), content_type='application/json')
+		self.assertEqual(res.status_code, 200)
+		assert b"updated" in res.data
