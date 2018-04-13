@@ -36,6 +36,20 @@ books_collection = [
 	}
 ]
 
+users_collection = [
+	{
+		'id': '1',
+		'username': 'admin1',
+		'password': "admin1"
+	},
+	{
+		'id': '2',
+		'username': 'admin2',
+		'password': "admin2"
+	},
+
+]
+
 allowed_keys = ['title', 'isbn', 'author', 'synopsis']  # needed book keys
 
 borrowed_book_collection = []
@@ -43,12 +57,17 @@ borrowed_book_collection = []
 
 @app.errorhandler(400)
 def error_400(e):
-	return jsonify({'error': 'Bad request'}), 400
+	return make_response(jsonify({'error': 'Bad request'})), 400
 
 
 @app.errorhandler(404)
 def api_404_error_handler(error):
 	return make_response(jsonify({"error": "Not found"})), 404
+
+
+@app.errorhandler(401)
+def api_401_error(e):
+	return make_response(jsonify({'error': 'Unauthorized'})), 401
 
 
 @app.route('/api/v1/books')
@@ -230,6 +249,45 @@ def api_borrow_book(book_id):
 	borrowed_book_collection.append(borrowed_book[0])
 
 	return jsonify({"borrowed book": borrowed_book[0]})
+
+
+@app.route('/api/v1/auth/register', methods=['POST'])
+def api_register():
+	if not request.json:
+		abort(401)
+
+	if 'username' not in request.json:
+		abort(401)
+	if 'password' not in request.json:
+		abort(401)
+
+	if 'username' in request.json:
+		username = format_book_input_values(request.json['username'])
+
+		if len(username) < 1:
+			return jsonify({"error": "username field cannot be empty"}), 401
+		else:
+			request.json['username'] = username
+
+	if 'password' in request.json:
+		request.json['password'] = format_book_input_values(request.json['password'].strip())
+		print(request.json)
+		if len(request.json['password']) < 8 or request.json['password'] == "":
+			return jsonify({"error": "password must be 8 characters or more"}), 401
+
+	new_user = [user for user in users_collection if user['username'] == request.json['username']]
+
+	if len(new_user) == 0:
+		create_user = {
+			'id': uuid.uuid4().hex,
+			'username': request.json['username'],
+			'password': request.json['password'],
+			'date_created': dt.datetime.now()
+		}
+		users_collection.append(create_user)
+		return jsonify({"message": f"{request.json['username']}'s account has been created"}), 201
+
+	return jsonify({"error": "username already exists. Please use a different username"}), 401
 
 
 if __name__ == '__main__':
