@@ -8,7 +8,7 @@ app.url_map.strict_slashes = False
 
 
 # useful functions
-def format_book_input_values(word):
+def format_inputs(word):
 	"""
 	formats input string
 	:param word:
@@ -36,19 +36,21 @@ books_collection = [
 	}
 ]
 
-users_collection = [
+user_registration_collection = [
 	{
 		'id': '1',
-		'username': 'admin1',
+		'username': 'Admin1',
 		'password': "admin1"
 	},
 	{
 		'id': '2',
-		'username': 'admin2',
+		'username': 'Admin2',
 		'password': "admin2"
 	},
 
 ]
+
+user_logged_collection = []
 
 allowed_keys = ['title', 'isbn', 'author', 'synopsis']  # needed book keys
 
@@ -141,7 +143,7 @@ def api_create_book():
 		if len(author.strip()) < 1:
 			return jsonify({'error': 'author list cannot contain an empty field'}), 400
 		else:
-			new_author.append(format_book_input_values(author))
+			new_author.append(format_inputs(author))
 
 	req_data['author'] = new_author
 
@@ -151,7 +153,7 @@ def api_create_book():
 
 	single_book = {  # Book blueprint
 		'id': uuid.uuid4().hex,
-		'title': format_book_input_values(req_data['title']),
+		'title': format_inputs(req_data['title']),
 		'isbn': req_data['isbn'],
 		'author': req_data['author'],
 		'synopsis': req_data['synopsis'],
@@ -179,7 +181,7 @@ def api_update_book(book_id):
 		abort(400)
 
 	if 'title' in request.json:
-		title = format_book_input_values(req_data['title'])
+		title = format_inputs(req_data['title'])
 
 		if len(title) < 1:
 			abort(400)
@@ -196,7 +198,7 @@ def api_update_book(book_id):
 			if len(author.strip()) < 1:
 				return jsonify({'error': 'author list cannot contain an empty field'}), 400
 			else:
-				new_author.append(format_book_input_values(author))
+				new_author.append(format_inputs(author))
 
 		request.json['author'] = new_author
 
@@ -262,7 +264,7 @@ def api_register():
 		abort(401)
 
 	if 'username' in request.json:
-		username = format_book_input_values(request.json['username'])
+		username = format_inputs(request.json['username'])
 
 		if len(username) < 1:
 			return jsonify({"error": "username field cannot be empty"}), 401
@@ -270,12 +272,17 @@ def api_register():
 			request.json['username'] = username
 
 	if 'password' in request.json:
-		request.json['password'] = format_book_input_values(request.json['password'].strip())
-		print(request.json)
+		request.json['password'] = request.json['password'].strip()
+		split_password = request.json['password'].split(" ")
+		join_password = "".join(split_password)
+
+		if len(join_password) != len(request.json['password']):
+			return jsonify({"error": "password cannot have space characters in it"}), 401
+
 		if len(request.json['password']) < 8 or request.json['password'] == "":
 			return jsonify({"error": "password must be 8 characters or more"}), 401
 
-	new_user = [user for user in users_collection if user['username'] == request.json['username']]
+	new_user = [user for user in user_registration_collection if user['username'] == request.json['username']]
 
 	if len(new_user) == 0:
 		create_user = {
@@ -284,10 +291,52 @@ def api_register():
 			'password': request.json['password'],
 			'date_created': dt.datetime.now()
 		}
-		users_collection.append(create_user)
+		user_registration_collection.append(create_user)
 		return jsonify({"message": f"{request.json['username']}'s account has been created"}), 201
 
 	return jsonify({"error": "username already exists. Please use a different username"}), 401
+
+
+@app.route('/api/v1/auth/login', methods=['POST'])
+def api_login():
+	if not request.json:
+		abort(401)
+
+	if 'username' not in request.json:
+		abort(401)
+	if 'password' not in request.json:
+		abort(401)
+
+	request.json['username'] = format_inputs(request.json['username'])
+
+	# check if user is registered
+	is_user_reg = [user for user in user_registration_collection if user['username'] == request.json['username']]
+
+	# check if user is logged in
+	is_user_logged = [user for user in user_logged_collection if user['username'] == request.json['username']]
+
+	if len(is_user_reg) < 1:
+		return jsonify({'error': "user not found. Please register first"}), 401
+
+	if is_user_logged:
+		return jsonify({"message": "you're already logged in"})
+
+	# log in user
+	if (is_user_reg[0]['username'] == request.json['username']) and (
+			is_user_reg[0]['password'] == request.json['password']):
+		user_logged_collection.append(is_user_reg[0])
+		return jsonify({"success": f"logged in as {request.json['username']} "})
+
+	return jsonify({'error': "username or password don't match"}), 401
+
+
+@app.route('/api/v1/auth/logout', methods=['POST'])
+def api_logout():
+	if not request.json:
+		abort(404)
+	user_logged_out = user_logged_collection.pop()
+
+	return jsonify({"message": f"logged out {user_logged_out['username']}"})
 
 
 if __name__ == '__main__':
