@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, abort, make_response, request
+from models.user import CreateUser
 import uuid
 import datetime as dt
 import re
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -36,6 +38,10 @@ books_collection = [
 	}
 ]
 
+user_tester = CreateUser()
+user_tester.set_username('tester')
+user_tester.set_password('123456789')
+
 user_registration_collection = [
 	{
 		'id': '1',
@@ -47,6 +53,11 @@ user_registration_collection = [
 		'username': 'Admin2',
 		'password': "admin2"
 	},
+	{
+		'id': user_tester.get_id(),
+		"username": user_tester.get_username(),
+		"password": user_tester.get_password()
+	}
 
 ]
 
@@ -269,7 +280,7 @@ def api_register():
 		if len(username) < 1:
 			return jsonify({"error": "username field cannot be empty"}), 401
 		else:
-			request.json['username'] = username
+			request.json['username'] = username.lower()
 
 	if 'password' in request.json:
 		request.json['password'] = request.json['password'].strip()
@@ -285,12 +296,17 @@ def api_register():
 	new_user = [user for user in user_registration_collection if user['username'] == request.json['username']]
 
 	if len(new_user) == 0:
+		user_blueprint = CreateUser()
+		user_blueprint.set_username(request.json['username'])
+		user_blueprint.set_password(request.json['password'])
+
 		create_user = {
-			'id': uuid.uuid4().hex,
-			'username': request.json['username'],
-			'password': request.json['password'],
-			'date_created': dt.datetime.now()
+			'id': user_blueprint.get_id(),
+			'username': user_blueprint.get_username(),
+			'password': user_blueprint.get_password(),
+			'date_created': user_blueprint.get_date_created()
 		}
+
 		user_registration_collection.append(create_user)
 		return jsonify({"message": f"{request.json['username']}'s account has been created"}), 201
 
@@ -299,93 +315,64 @@ def api_register():
 
 @app.route('/api/v1/auth/login', methods=['POST'])
 def api_login():
+	# confirm json is in the request object
 	if not request.json:
 		abort(401)
 
 	if 'username' not in request.json:
 		abort(401)
+
 	if 'password' not in request.json:
 		abort(401)
 
-	request.json['username'] = format_inputs(request.json['username'])
+	# check if username already exists in the registered list
+	check_user = [user for user in user_registration_collection if user['username'] == request.json['username']]
 
-	# check if user is registered
-	is_user_reg = [user for user in user_registration_collection if user['username'] == request.json['username']]
+	# if not ask user to register
+	if len(check_user) < 1:
+		return jsonify({"error": "username doesn't exists. Please register first"}), 401
 
-	# check if user is logged in
-	is_user_logged = [user for user in user_logged_collection if user['username'] == request.json['username']]
+	# check if user is already logged in
+	for user in user_logged_collection:
+		if user['username'] == check_user[0]['username']:
+			return jsonify({"message": f"You're already logged in as {request.json['username']}"})
+		else:
+			# then user must first logout to login with a new username
+			return jsonify(
+				{"error": f"you must log out first from {user_logged_collection[0]['username']}'s account"})
 
-	if len(is_user_reg) < 1:
-		return jsonify({'error': "user not found. Please register first"}), 401
+	# if they exist check if password match
+	if check_password_hash(check_user[0]['password'], request.json['password']):
+		# add user to logged in list
+		user_logged_collection.append(check_user[0])
+		return jsonify({"success": f"logged in as {request.json['username']}"})
 
-	if is_user_logged:
-		return jsonify({"message": "you're already logged in"})
-
-	# log in user
-	if (is_user_reg[0]['username'] == request.json['username']) and (
-			is_user_reg[0]['password'] == request.json['password']):
-		user_logged_collection.append(is_user_reg[0])
-		return jsonify({"success": f"logged in as {request.json['username']} "})
-
-	return jsonify({'error': "username or password don't match"}), 401
+	# if not send back error message that password or username don't match'
+	return jsonify({'error': "username or password don't match. Please try again."}), 401
 
 
 @app.route('/api/v1/auth/logout', methods=['POST'])
 def api_logout():
+	global user_logged_collection
+	# confirm json is in the request object
 	if not request.json:
-		abort(404)
+		abort(401)
 
-	user_logged_out = user_logged_collection.pop()
+	if 'username' not in request.json:
+		return jsonify({"error": "username required to log out"}), 401
 
-	return jsonify({"message": f"logged out {user_logged_out['username']}"})
+	for user in user_logged_collection:
+		if user['username'] == request.json['username']:
+			user_logged_collection = list(
+				filter(lambda x: x['username'] != request.json['username'], user_logged_collection))
+			return jsonify({"message": f"{request.json['username']} successfully logged out"})
+
+	return jsonify({"message": f"{request.json['username']} already logged out. Log back in or register."}), 401
 
 
 @app.route('/api/v1/auth/reset-password', methods=['POST'])
 def api_reset_password():
-	if not request.json:
-		return jsonify({"error": "json not detected"}), 401
-
-	if 'username' not in request.json:
-		return jsonify({"error": "username key not detected in json"}), 401
-
-	if 'old_password' not in request.json:
-		return jsonify({"error": "old_password key not detected in json"}), 401
-
-	if 'new_password' not in request.json:
-		return jsonify({"error": "new_password key not detected in json"}), 401
-
-	if 'username' in request.json:
-		username = format_inputs(request.json['username'])
-
-		if len(username) < 1:
-			return jsonify({"error": "username field cannot be empty"}), 401
-		else:
-			request.json['username'] = username
-
-	if 'new_password' in request.json:
-		request.json['new_password'] = request.json['new_password'].strip()
-		split_password = request.json['new_password'].split(" ")
-		join_password = "".join(split_password)
-
-		if len(join_password) != len(request.json['new_password']):
-			return jsonify({"error": "password cannot have space characters in it"}), 401
-
-		if len(request.json['new_password']) < 8 or request.json['new_password'] == "":
-			return jsonify({"error": "password must be 8 characters or more"}), 401
-
-	# check if username exists in registrations
-	find_user = [user for user in user_registration_collection if user['username'] == request.json['username']]
-
-	# if user doesn't exist ask them to register
-	if len(find_user) < 1:
-		return jsonify({"message": "username not found. Please register"}), 404
-
-	# if they do, check if if old password match the one in the database
-	if find_user[0]['password'] == request.json['old_password']:
-		find_user[0]['password'] = request.json['new_password']
-		return jsonify({"message": "password updated successfully"})
-
-	abort(401)
+	pass
 
 
 # if they do, update password with the new one
