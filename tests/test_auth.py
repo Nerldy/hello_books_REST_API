@@ -138,4 +138,31 @@ class ApiAuthTestCase(TestCase):
 		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
 		assert b"username doesn't exists" in res.data
 
+	def test_logout(self):
+		payload = {
+			"username": "tester",
+			"password": "123456789"
+		}
+		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
+		res = self.app.post('/api/v1/auth/logout', data=json.dumps(dict(username='tester')),
+							content_type='application/json')
+		assert b"successfully logged out" in res.data
 
+	def test_logout_no_json(self):
+		payload = ""
+		res = self.app.post('/api/v1/auth/logout', data=json.dumps(payload), content_type='application/json')
+		assert res.status_code == 401
+
+	def test_logout_no_username(self):
+		payload = {"nothing": "u"}
+		res = self.app.post('/api/v1/auth/logout', data=json.dumps(payload), content_type='application/json')
+		assert b"username required to log out" in res.data
+		assert res.status_code == 401
+
+	def test_logout_already_logged_out(self):
+		payload = {
+			"username": "tester"
+		}
+		res = self.app.post('/api/v1/auth/logout', data=json.dumps(payload), content_type='application/json')
+		res = self.app.post('/api/v1/auth/logout', data=json.dumps(payload), content_type='application/json')
+		assert res.status_code == 401
