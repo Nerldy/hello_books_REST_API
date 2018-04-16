@@ -138,11 +138,4 @@ class ApiAuthTestCase(TestCase):
 		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
 		assert b"username doesn't exists" in res.data
 
-	# def test_login_password_or_username_match_error(self):
-	# 	payload2 = {
-	# 		"username": "tester",
-	# 		"password": "123"
-	# 	}
-	#
-	# 	res2 = self.app.post('/api/v1/auth/login', data=json.dumps(payload2), content_type='application/json')
-	# 	assert b"username or password don't match" in res2.data
+
