@@ -17,11 +17,11 @@ class ApiAuthTestCase(TestCase):
 
 	def test_register_user_success(self):
 		payload = {
-			"username": 'tester',
+			"username": 'paul',
 			"password": "123456789"
 		}
 		res = self.app.post('/api/v1/auth/register', data=json.dumps(payload), content_type='application/json')
-		assert b"Tester's account has been created" in res.data
+		assert b"paul's account has been created" in res.data
 
 	def test_register_not_json(self):
 		payload = {}
@@ -61,6 +61,15 @@ class ApiAuthTestCase(TestCase):
 		self.assertEqual(res.status_code, 401)
 		assert b"password must be 8 characters or more" in res.data
 
+	def test_register_password_cannot_have_space(self):
+		payload = {
+			"username": "tester",
+			"password": "1234  4567896"
+		}
+		res = self.app.post('/api/v1/auth/register', data=json.dumps(payload), content_type='application/json')
+		self.assertEqual(res.status_code, 401)
+		assert b"password cannot have space characters" in res.data
+
 	def test_register_username_exists(self):
 		payload = {
 			"username": "admin2",
@@ -70,3 +79,70 @@ class ApiAuthTestCase(TestCase):
 		res = self.app.post('/api/v1/auth/register', data=json.dumps(payload), content_type='application/json')
 		self.assertEqual(res.status_code, 401)
 		assert b"username already exists. Please use a different username" in res.data
+
+	def test_login_success(self):
+		payload = {
+			"username": "tester",
+			"password": "123456789"
+		}
+		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
+		assert b"logged in as tester" in res.data
+
+	def test_login_already_logged_in(self):
+		payload = {
+			"username": "tester",
+			"password": "123456789"
+		}
+		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
+		res2 = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
+		assert b"You're already logged in" in res2.data
+
+	def test_login_log_out_first(self):
+		payload = {
+			"username": "tester",
+			"password": "123456789"
+		}
+		payload2 = {
+			"username": "tester2",
+			"password": "123456789"
+		}
+		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
+		res2 = self.app.post('/api/v1/auth/register', data=json.dumps(payload2), content_type='application/json')
+		res3 = self.app.post('/api/v1/auth/login', data=json.dumps(payload2), content_type='application/json')
+		assert b"you must log out first" in res3.data
+
+	def test_login_no_json(self):
+		payload = ""
+		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
+		assert res.status_code == 401
+
+	def test_login_no_username_error(self):
+		payload = {
+			"password": "123456789"
+		}
+		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
+		assert res.status_code == 401
+
+	def test_login_no_password_error(self):
+		payload = {
+			"username": "123456789"
+		}
+		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
+		assert res.status_code == 401
+
+	def test_login_user_not_exist(self):
+		payload = {
+			"username": "the_sun",
+			"password": "123456789"
+		}
+		res = self.app.post('/api/v1/auth/login', data=json.dumps(payload), content_type='application/json')
+		assert b"username doesn't exists" in res.data
+
+	# def test_login_password_or_username_match_error(self):
+	# 	payload2 = {
+	# 		"username": "tester",
+	# 		"password": "123"
+	# 	}
+	#
+	# 	res2 = self.app.post('/api/v1/auth/login', data=json.dumps(payload2), content_type='application/json')
+	# 	assert b"username or password don't match" in res2.data
