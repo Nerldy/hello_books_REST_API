@@ -334,10 +334,62 @@ def api_login():
 def api_logout():
 	if not request.json:
 		abort(404)
+
 	user_logged_out = user_logged_collection.pop()
 
 	return jsonify({"message": f"logged out {user_logged_out['username']}"})
 
+
+@app.route('/api/v1/auth/reset-password', methods=['POST'])
+def api_reset_password():
+	if not request.json:
+		return jsonify({"error": "json not detected"}), 401
+
+	if 'username' not in request.json:
+		return jsonify({"error": "username key not detected in json"}), 401
+
+	if 'old_password' not in request.json:
+		return jsonify({"error": "old_password key not detected in json"}), 401
+
+	if 'new_password' not in request.json:
+		return jsonify({"error": "new_password key not detected in json"}), 401
+
+	if 'username' in request.json:
+		username = format_inputs(request.json['username'])
+
+		if len(username) < 1:
+			return jsonify({"error": "username field cannot be empty"}), 401
+		else:
+			request.json['username'] = username
+
+	if 'new_password' in request.json:
+		request.json['new_password'] = request.json['new_password'].strip()
+		split_password = request.json['new_password'].split(" ")
+		join_password = "".join(split_password)
+
+		if len(join_password) != len(request.json['new_password']):
+			return jsonify({"error": "password cannot have space characters in it"}), 401
+
+		if len(request.json['new_password']) < 8 or request.json['new_password'] == "":
+			return jsonify({"error": "password must be 8 characters or more"}), 401
+
+	# check if username exists in registrations
+	find_user = [user for user in user_registration_collection if user['username'] == request.json['username']]
+
+	# if user doesn't exist ask them to register
+	if len(find_user) < 1:
+		return jsonify({"message": "username not found. Please register"}), 404
+
+	# if they do, check if if old password match the one in the database
+	if find_user[0]['password'] == request.json['old_password']:
+		find_user[0]['password'] = request.json['new_password']
+		return jsonify({"message": "password updated successfully"})
+
+	abort(401)
+
+
+# if they do, update password with the new one
+# else tell them passwords don't match
 
 if __name__ == '__main__':
 	app.run(debug=1)
