@@ -363,20 +363,56 @@ def api_logout():
 
 	for user in user_logged_collection:
 		if user['username'] == request.json['username']:
-			user_logged_collection = list(
-				filter(lambda x: x['username'] != request.json['username'], user_logged_collection))
+			# check if user is logged in
+			user_logged_collection = list(filter(lambda x: x['username'] != request.json['username'], user_logged_collection))
+
 			return jsonify({"message": f"{request.json['username']} successfully logged out"})
 
-	return jsonify({"message": f"{request.json['username']} already logged out. Log back in or register."}), 401
+	return jsonify({"error": f"can't logout {request.json['username']} because it's not currently logged in"}), 401
 
 
 @app.route('/api/v1/auth/reset-password', methods=['POST'])
 def api_reset_password():
-	pass
+	if not request.json:
+		abort(401)
 
+	if 'username' not in request.json:
+		return jsonify({"error": "username field not found in json"}), 401
 
-# if they do, update password with the new one
-# else tell them passwords don't match
+	if 'old_password' not in request.json:
+		return jsonify({"error": "old_password field not found in json"}), 401
+
+	if 'new_password' not in request.json:
+		return jsonify({"error": "new_password field not found in json"}), 401
+
+	# search if user is registered
+	is_user_registered = next(filter(lambda x: x['username'] == request.json['username'], user_registration_collection), None)
+
+	if is_user_registered is None:
+		return jsonify({"message": "user not found. Please register"}), 404
+	else:
+		if 'new_password' in request.json:
+			request.json['new_password'] = request.json['new_password'].strip()
+			split_password = request.json['new_password'].split(" ")
+			join_password = "".join(split_password)
+
+			if len(join_password) != len(request.json['new_password']):
+				return jsonify({"error": "new_password cannot have space characters in it"}), 401
+
+			if len(request.json['new_password']) < 8 or request.json['new_password'] == "":
+				return jsonify({"error": "new_password must be 8 characters or more"}), 401
+
+		# check if old password match
+		if check_password_hash(is_user_registered['password'], request.json['old_password']):
+			update_password = {
+				"password": generate_password_hash(request.json["new_password"])
+			}
+			is_user_registered.update(update_password)
+
+			return jsonify({"message": "password has been reset"})
+
+		return jsonify({'error': "username or old_password is not correct"}), 401
+
 
 if __name__ == '__main__':
 	app.run(debug=1)
