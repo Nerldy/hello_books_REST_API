@@ -166,3 +166,86 @@ class ApiAuthTestCase(TestCase):
 		res = self.app.post('/api/v1/auth/logout', data=json.dumps(payload), content_type='application/json')
 		res = self.app.post('/api/v1/auth/logout', data=json.dumps(payload), content_type='application/json')
 		assert res.status_code == 401
+
+	def test_reset_password_succesful(self):
+		payload = {
+			"username": 'tester',
+			"old_password": "123456789",
+			"new_password": "987654321"
+		}
+
+		res = self.app.post('/api/v1/auth/reset-password', data=json.dumps(payload), content_type='application/json')
+		assert b"password has been reset" in res.data
+
+	def test_reset_password_no_json_error(self):
+		payload = ""
+
+		res = self.app.post('/api/v1/auth/reset-password', data=json.dumps(payload), content_type='application/json')
+		assert res.status_code == 401
+
+	def test_reset_password_no_username_error(self):
+		payload = {
+			"old_password": "123456789",
+			"new_password": "987654321"
+		}
+
+		res = self.app.post('/api/v1/auth/reset-password', data=json.dumps(payload), content_type='application/json')
+		assert b"username field not found" in res.data
+
+	def test_reset_password_no_old_pw_error(self):
+		payload = {
+			"username": 'tester',
+			"new_password": "987654321"
+		}
+
+		res = self.app.post('/api/v1/auth/reset-password', data=json.dumps(payload), content_type='application/json')
+		assert b"old_password field not found" in res.data
+
+	def test_reset_pw_no_new_pw_error(self):
+		payload = {
+			"username": 'tester',
+			"old_password": "987654321"
+		}
+
+		res = self.app.post('/api/v1/auth/reset-password', data=json.dumps(payload), content_type='application/json')
+		assert b"new_password field not found" in res.data
+
+	def test_reset_pw_user_not_found(self):
+		payload = {
+			"username": 'tester3',
+			"old_password": "123456789",
+			"new_password": "987654321"
+		}
+
+		res = self.app.post('/api/v1/auth/reset-password', data=json.dumps(payload), content_type='application/json')
+		assert b"user not found" in res.data
+
+	def test_reset_pw_new_pw_cant_have_space(self):
+		payload = {
+			"username": 'tester',
+			"old_password": "123456789",
+			"new_password": "98 7654321"
+		}
+
+		res = self.app.post('/api/v1/auth/reset-password', data=json.dumps(payload), content_type='application/json')
+		assert b"new_password cannot have space characters in it" in res.data
+
+	def test_reset_pw_new_pw_must_be_8_characters(self):
+		payload = {
+			"username": 'tester',
+			"old_password": "123456789",
+			"new_password": "654321"
+		}
+
+		res = self.app.post('/api/v1/auth/reset-password', data=json.dumps(payload), content_type='application/json')
+		assert b"new_password must be 8 characters or more" in res.data
+
+	def test_reset_pw_username_or_password_not_correct(self):
+		payload = {
+			"username": 'tester',
+			"old_password": "12345678",
+			"new_password": "654321896565"
+		}
+
+		res = self.app.post('/api/v1/auth/reset-password', data=json.dumps(payload), content_type='application/json')
+		assert b"username or old_password is not correct" in res.data
