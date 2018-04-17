@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, abort, make_response, request
 from models.user import CreateUser
-import uuid
-import datetime as dt
+from models.book import Book
 import re
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -162,13 +161,19 @@ def api_create_book():
 	if len(req_data['synopsis']) < 50:
 		return jsonify({"error": "synopsis must be at least 50 characters long"}), 400
 
+	new_book = Book()
+	new_book.set_title(format_inputs(req_data['title']))
+	new_book.set_isbn(req_data['isbn'])
+	new_book.set_author(req_data['author'])
+	new_book.set_synopsis(req_data['synopsis'])
+
 	single_book = {  # Book blueprint
-		'id': uuid.uuid4().hex,
-		'title': format_inputs(req_data['title']),
-		'isbn': req_data['isbn'],
-		'author': req_data['author'],
-		'synopsis': req_data['synopsis'],
-		"date_created": dt.datetime.now()
+		'id': new_book.get_id(),
+		'title': new_book.get_title(),
+		'isbn': new_book.get_isbn(),
+		'author': new_book.get_author(),
+		'synopsis': new_book.get_synopsis(),
+		"date_created": new_book.get_date_created()
 	}
 
 	books_collection.append(single_book)  # add to book collection
