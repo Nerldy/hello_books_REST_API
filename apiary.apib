@@ -48,4 +48,33 @@ form of author.
             
 + Response 400 (application/json)
 
-        error message
+        {
+            "error": "error message"
+            }
+            
+## Book [/books/{book_id}]
+
++ Parameters
+    + book_id (string, required) - ID of the book
+    
+### View Details of a Book [GET]
+
++ Response 200 (application/json)
+    
+    + Attributes
+        - Include Book
+        
++ Response 404 (application/json)
+    
+        {
+            "error": "Not found"
+        }
+    
+# Data Structures
+
+## Book (object)
+
++ title: `Hello Books` (string, required) - Book title
++ isbn: `1234-56-789-1` (string, required) - unique ISBN number of the book
++ synopsis: `Something about the book` (string, required) - synopsis of the book. Minimum 50 words
++ author: `John Doe` (array, required) - list book author(s)
