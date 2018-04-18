@@ -124,13 +124,32 @@ User borrows book by it's ***id*** and it adds it to user's database
 
 + Response 400
 
+
 ## Register [/auth/register]
 
-## Register New User [POST]
+### Register New User [POST]
 Register new user
 
-+ Attributes
-    - Include User
++ Request (application/json)
+
+    + Attributes
+        - Include User
+        
++ Response 201 (application/json)       
+
++ Response 401 (application/json)
+
+
+## Login [/auth/login]
+
+### Login User [POST]
+
++ Request (application/json)
+
+    + Attributes
+        - Include User
++ Response 401 (application/json)
+
 
 # Data Structures
 
@@ -144,5 +163,5 @@ Register new user
 
 ## User (object)
 
-+ username: `Username` (string, required) - username
++ username: `Username` (string, required) - username. Must be unique
 + password: `12345678` (string, required) - user password. Must not be less than 8  characters
