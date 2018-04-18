@@ -110,7 +110,10 @@ Delete books
         
 ## User [/users/books/{book_id}]
 
-### POST Book [POST]
++ Paremeters
+    + id - id of book user wants to borrow
+
+### Borrow Book [POST]
 User borrows book by it's ***id*** and it adds it to user's database
 
 + Response 200 (application/json)
@@ -120,6 +123,14 @@ User borrows book by it's ***id*** and it adds it to user's database
 + Response 404
 
 + Response 400
+
+## Register [/auth/register]
+
+## Register New User [POST]
+Register new user
+
++ Attributes
+    - Include User
 
 # Data Structures
 
@@ -134,3 +145,4 @@ User borrows book by it's ***id*** and it adds it to user's database
 ## User (object)
 
 + username: `Username` (string, required) - username
++ password: `12345678` (string, required) - user password. Must not be less than 8  characters
