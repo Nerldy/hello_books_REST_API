@@ -1,0 +1,30 @@
+FORMAT: 1A
+
+# Hello Books
+Hello-Books is a simple application that helps manage a library and its processes like stocking, tracking and renting books. With this application users are able to find and rent books. The application also has an admin section where the admin can do things like add books, delete books, increase the quantity of a book etc
+
+# Group Books
+
+## Book Collection [/books]
+
+### Get All Books [GET /api/v1/books]
++ Response 200 (application/json)
+    + Attributes
+        - books (array[Book])
+
+### Get Single Book [GET /api/v1/books/{book_id}]
++ Parameter
+    + id: `1` - The ID of the book
++ Response 200 (application/json)
+    + Attributes
+        - include Book
+
+# Data Structures
+
+## Book (object)
+- id: `1` (hex) - The ID of the book
+- title: `Hello Books` (string) - The title of the book
+- isbn: `123-456-789-1` (string) - The unique ISBN number of the book
+- author: `[John Doe (string)]` (array) - The author(s) of the book
+- synopsis: `Book synposis` (string) - The synopsis of the book
+- date_created: `date created`(date) - The date the book was created
