@@ -71,7 +71,23 @@ Retrieve a book
             "error": "Not found"
         }
         
-###
+### PUT Book [PUT]
+Update a book **title, author,** or **synopsis** by it's **id**
+
++ Request (application/json)
+        
+        {
+            "title": "Update Book",
+            "author": ["guess new name"]
+        }
+
++ Response 200 (application/json)
+        
+        {
+            "Book updated": "{}"
+        }
+        
++ Response 400 (application/json)
         
 ### Delete Book [DELETE]
 Delete books
