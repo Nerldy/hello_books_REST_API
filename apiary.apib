@@ -8,6 +8,7 @@ Hello-Books is a simple application that helps manage a library and its processe
 ## Books Collection [/books]
 
 ### List All Books [GET]
+Retrieve all books in the database
 
 + Response 200 (application/json)
 
@@ -49,11 +50,15 @@ form of author.
             }
             
 ## Book [/books/{book_id}]
+Book actions by it's *id*
+
+*book_id* is required to perform these actions
 
 + Parameters
     + book_id (string, required) - ID of the book
     
 ### GET Book [GET]
+Retrieve a book     
 
 + Response 200 (application/json)
     
@@ -66,7 +71,14 @@ form of author.
             "error": "Not found"
         }
         
+###
+        
 ### Delete Book [DELETE]
+Delete books
+
+**Warning:** This action **permanently** removes the book from the database.
+
+
 
 + Response 200 (application/json)
     
