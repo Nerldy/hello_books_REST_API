@@ -53,7 +53,7 @@ form of author.
 + Parameters
     + book_id (string, required) - ID of the book
     
-### View Details of a Book [GET]
+### GET Book [GET]
 
 + Response 200 (application/json)
     
@@ -65,7 +65,21 @@ form of author.
         {
             "error": "Not found"
         }
+        
+### Delete Book [DELETE]
+
++ Response 200 (application/json)
     
+        {
+            "result": True
+        }
+    
++ Response 404 (application/json)
+
+        {
+            "error": "Not found"
+        }
+
 # Data Structures
 
 ## Book (object)
