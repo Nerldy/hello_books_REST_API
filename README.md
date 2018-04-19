@@ -5,7 +5,22 @@
 # HELLO BOOKS APP
 Hello-Books is a simple application that helps manage a library and its processes like stocking, tracking and renting books. With this application users are able to find and rent books. The application also has an admin section where the admin can do things like add books, delete books, increase the quantity of a book etc
 
-## Endpoints
+## Prerequisites
+
+- Python 3.6.4
+
+## Install
+
+`$ pip install -r requirements.txt `
+
+
+## Usage
+
+Make sure you're running a **virtual environment**
+
+`$ python app.py`
+
+## Features
 
 | Endpoints                          	| Description                 	|
 |------------------------------------	|-----------------------------	|
@@ -19,6 +34,11 @@ Hello-Books is a simple application that helps manage a library and its processe
 | POST /api/v1/auth/login            	| logs in user                	|
 | POST /api/v1/auth/logout           	| logs out user               	|
 | POST /api/v1/auth/reset-password   	| reset user password         	|
+
+
+## Running Tests
+
+`nostests`
 
 ## API Documentation
 
