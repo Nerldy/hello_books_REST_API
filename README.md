@@ -22,4 +22,4 @@ Hello-Books is a simple application that helps manage a library and its processe
 
 ## API Documentation
 
-https://app.apiary.io/hellobooks14
+https://hellobooks14.docs.apiary.io/#
