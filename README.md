@@ -19,3 +19,7 @@ Hello-Books is a simple application that helps manage a library and its processe
 | POST /api/v1/auth/login            	| logs in user                	|
 | POST /api/v1/auth/logout           	| logs out user               	|
 | POST /api/v1/auth/reset-password   	| reset user password         	|
+
+## API Documentation
+
+https://app.apiary.io/hellobooks14
